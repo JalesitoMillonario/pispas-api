@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  password     String
+  full_name    String?
+  role         String     @default("user")
+  created_date DateTime   @default(now())
+  updated_date DateTime   @updatedAt
+
+  // Relaciones
+  incidents    Incident[]         @relation("UserIncidents")
+  notes        IncidentNote[]     @relation("UserNotes")
+  histories    IncidentHistory[]  @relation("UserHistories")
+  memories     Memory[]
+}
+
+model Incident {
+  id               String            @id @default(cuid())
+  number           String
+  title            String
+  description      String
+  status           String            @default("open")
+  priority         String            @default("medium")
+  category         String            @default("mechanical_failure")
+  trip_id          String?
+  location         String?
+  user_phone       String?
+  reported_by      String?
+  assigned_to      String?
+  source           String            @default("app_user")
+  resolution_date  DateTime?
+  resolution_notes String?
+  estimated_cost   Float?
+  requires_pickup  Boolean           @default(false)
+  created_date     DateTime          @default(now())
+  updated_date     DateTime          @updatedAt
+  created_by       String
+
+  // Relaciones
+  creator          User?             @relation("UserIncidents", fields: [created_by], references: [email])
+  notes            IncidentNote[]    @relation("IncidentNotes")
+  histories        IncidentHistory[] @relation("IncidentHistories")
+}
+
+model IncidentNote {
+  id         String   @id @default(cuid())
+  incidentId String
+  authorId   String?
+  body       String
+  createdAt  DateTime @default(now())
+
+  // Relaciones
+  incident   Incident @relation("IncidentNotes", fields: [incidentId], references: [id])
+  author     User?    @relation("UserNotes", fields: [authorId], references: [id])
+}
+
+model IncidentHistory {
+  id            String   @id @default(cuid())
+  incidentId    String
+  fromStatus    String?
+  toStatus      String
+  note          String?
+  changedAt     DateTime @default(now())
+  changedById   String?
+
+  // Relaciones
+  incident      Incident @relation("IncidentHistories", fields: [incidentId], references: [id])
+  changedBy     User?    @relation("UserHistories", fields: [changedById], references: [id])
+}
+
+model Memory {
+  id        String   @id @default(cuid())
+  userId    String
+  scope     String
+  key       String
+  value     Json
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  user      User     @relation(fields: [userId], references: [id])
+  @@unique([userId, scope, key])
+}
+model ApiKey {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  name      String?
+  role      String   @default("bot")
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model StockItem {
+  id                  String   @id @default(cuid())
+  sku                 String   @unique
+  name                String
+  category            String   @default("other")
+  description         String?
+  quantity            Int      @default(0)
+  min_quantity        Int      @default(5)
+  unit_price          Float?
+  supplier            String?
+  location            String?
+  compatible_models   String?
+  status              String   @default("available")
+  last_restock_date   DateTime?
+  notes               String?
+  created_date        DateTime @default(now())
+  updated_date        DateTime @updatedAt
+  created_by          String   @default("system")
+
+  @@map("stock_items")
+}
