@@ -121,3 +121,35 @@ model StockItem {
 
   @@map("stock_items")
 }
+
+model PurchaseOrder {
+  id                     String              @id @default(cuid())
+  numero                 String              @unique
+  fecha_creacion         DateTime            @default(now())
+  fecha_modificacion     DateTime            @updatedAt
+  fecha_cursado          DateTime?
+  fecha_recibido         DateTime?
+  fecha_ultima_recepcion DateTime?
+  estado                 String              @default("borrador")
+  total                  Float               @default(0)
+  notas                  String?
+  created_by             String
+  lineas                 PurchaseOrderLine[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderLine {
+  id                String        @id @default(cuid())
+  purchase_order_id String
+  pieza_id          String
+  codigo            String
+  nombre            String
+  unidad            String?
+  cantidad          Int
+  cantidad_recibida Int           @default(0)
+  pvp               Float
+  order             PurchaseOrder @relation(fields: [purchase_order_id], references: [id], onDelete: Cascade)
+
+  @@map("purchase_order_lines")
+}

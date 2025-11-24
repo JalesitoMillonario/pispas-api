@@ -6,7 +6,8 @@ import authRoutes from "./routes/auth.js";
 import incidentsRoutes from "./routes/incidents.js";
 import memoryRoutes from "./routes/memory.js";
 import usersRoutes from "./routes/users.js";
-import stockRoutes from "./routes/stock.js"; // ¡NUEVA LÍNEA!
+import stockRoutes from "./routes/stock.js";
+import purchaseOrdersRoutes from "./routes/purchaseOrders.js";
 
 dotenv.config();
 const app = express();
@@ -25,7 +26,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/incidents", incidentsRoutes);
 app.use("/api/memory", memoryRoutes);
 app.use("/api/users", usersRoutes);
-app.use("/api/stock", stockRoutes); // ¡NUEVA LÍNEA!
+app.use("/api/stock", stockRoutes);
+app.use("/api/purchase-orders", purchaseOrdersRoutes);
 
 app.get("/", (_, res) => res.json({ status: "Pispas API OK" }));
 
