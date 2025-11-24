@@ -97,17 +97,12 @@ router.get("/sku/:sku", authenticate, async (req, res) => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 router.get("/low-stock", authenticate, async (req, res) => {
   try {
-    const lowStockItems = await prisma.stockItem.findMany({
-      where: {
-        quantity: {
-          lte: prisma.stockItem.fields.min_quantity
-        },
-        status: "available" // Solo items activos
-      },
-      orderBy: {
-        quantity: 'asc' // Los más críticos primero
-      }
-    });
+    const lowStockItems = await prisma.$queryRaw`
+      SELECT * FROM stock_items
+      WHERE quantity <= min_quantity
+      AND status = 'available'
+      ORDER BY quantity ASC
+    `;
 
     res.json(lowStockItems);
   } catch (error) {
@@ -126,13 +121,11 @@ router.get("/stats", authenticate, async (req, res) => {
   try {
     const totalItems = await prisma.stockItem.count();
 
-    const lowStock = await prisma.stockItem.count({
-      where: {
-        quantity: {
-          lte: prisma.stockItem.fields.min_quantity
-        }
-      }
-    });
+    const lowStockResult = await prisma.$queryRaw`
+      SELECT COUNT(*) as count FROM stock_items
+      WHERE quantity <= min_quantity
+    `;
+    const lowStock = parseInt(lowStockResult[0].count);
 
     const outOfStock = await prisma.stockItem.count({
       where: { quantity: 0 }
